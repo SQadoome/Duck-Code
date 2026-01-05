@@ -15,125 +15,67 @@ public class Style {
 	public String endText = "";
 	
 	public int lineLength;
-	public TextMarginar marginar;
 	
 	// constructors
 	public Style() {
 		lineLength = 40;
-		marginar = new TextMarginar(TextMarginar.margins.centered);
 	}
 
 	public Style(int length) {
-		marginar = new TextMarginar(TextMarginar.margins.beginning);
-		lineLength = length;
-	}
-	
-	public Style(TextMarginar marginar) {
-		this.marginar = marginar;
-	}
-	
-	public Style(TextMarginar marginar, int length) {
-		this.marginar = marginar;
 		lineLength = length;
 	}
 	
 	//-------------
 	
-	private String getCleanText(String text) {
-		String updatedText = "";
+	public String getFilteredText(String stuffing) {
+		String filtered = ""; // filtered from ansi values
+		// useful for getting the "real" length of a string
+		// the ansis i used all start with '\' and end with 'm'
 		
 		boolean flag = false;
-		for (int i = 0; i < text.length(); i++) {
+		
+		for (int i = 0; i < stuffing.length(); i++) {
+			
 			if (flag == true) {
-				if (text.charAt(i) == 'm') {
+				if (stuffing.charAt(i) == 'm') {
 					flag = false;
 				}
+				continue; // as long as 'm' is not encountered this will continue
+			}
+			
+			if (stuffing.charAt(i) - '0' == -21) { // -21 is the int value of '\' as direct comparison failed
+				flag = true; // found an ansi
 				continue;
 			}
 			
-			if (text.charAt(i) == '\\') {
-				flag = true;
-			} else {
-				updatedText = updatedText + text.charAt(i);
-			}
+			filtered += stuffing.charAt(i);
 		}
-		
-		return updatedText;
+		return filtered;
 	}
 	
 	public void printStart() {
 		System.out.println(startText);
 	}
 	
-	public void printBody(String stuffing, int textLength) {
-		MarginData marginData = marginar.retrieveMargin(lineLength);
-		
-		String editedText;
-		int endsAt = 0;
-		
-		if (textLength + marginData.emptySpace > lineLength) {
-			endsAt = lineLength - 1 - marginData.emptySpace - marginData.limit; // the -1 comes from "-"
-			editedText = stuffing.substring(0, endsAt) + "-" ;
-			
-			printLine(marginData.emptySpace, editedText, marginData.limit);		
-		
-		} else {
-			printLine(marginData.emptySpace, stuffing, lineLength - (textLength+marginData.emptySpace));
-			return;
-		}
-		
-		printBody(stuffing.substring(endsAt), textLength-(endsAt));
-	}
-	
-	public void printBody(String stuffing, int textLength, String[] args) {
-		MarginData marginData = marginar.retrieveMargin(lineLength);
-		
-		String editedText;
-		int endsAt = 0;
-		
-		if (textLength + marginData.emptySpace > lineLength) {
-			endsAt = lineLength - 1 - marginData.emptySpace - marginData.limit; // the -1 comes from "-"
-			editedText = stuffing.substring(0, endsAt) + "-" ;
-			
-			printLine(marginData.emptySpace, editedText, marginData.limit, args);		
-		
-		} else {
-			printLine(marginData.emptySpace, stuffing, lineLength - (textLength+marginData.emptySpace), args);
-			return;
-		}
-		
-		
-		printBody(stuffing.substring(endsAt), textLength-(endsAt));
-	}
-	
-	public void printTitle(String title) {
-		MarginData marginData = marginar.retrieveMargin(lineLength);
-		int realLength = title.replaceAll("\\u001b\\[[;\\d]*m", "").length();
-		
-		int emptyCount = marginData.emptySpace - 1;
-		if (emptyCount <= 0) {
-			emptyCount = 0;
-		}
-		
-		System.out.print(bodyText + " ".repeat(emptyCount));
-		System.out.print(AnsiValues.BOLD + title);
-		System.out.println(AnsiValues.DEFAULT + " ".repeat(lineLength - (emptyCount+realLength)) + bodyText);
-	}
-	
-	private void printLine(int startSpace, String stuffing, int endSpace) {
-		System.out.print(bodyText + " ".repeat(startSpace)); // body start
-		System.out.print(stuffing); // stuffing
-		System.out.println(" ".repeat(endSpace) + bodyText); // body end
-	}
-	
-	private void printLine(int startSpace, String stuffing, int endSpace, String[] args) {
-		System.out.print(bodyText + " ".repeat(startSpace)); // body start
-		System.out.printf(stuffing, args); // stuffing
-		System.out.println(" ".repeat(endSpace) + bodyText); // body end
-	}
-	
 	public void printEnd() {
 		System.out.println(endText);
+	}
+	
+	public void printBody(String[] lines) {
+		for (int i = 0; i < lines.length; i++) {
+			if (lines[i].length() > lineLength - 1) {
+				System.err.println("WARNING: text is longer than specified line length");
+				return;
+			}
+			
+			printLine(lines[i]);
+		}
+		
+	}
+
+	public void printLine(String text) {
+		int realLength = getFilteredText(text).length();
+		System.out.println(bodyText + " " + text + " ".repeat(lineLength - realLength - 1) + bodyText);
 	}
 	
 }

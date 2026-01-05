@@ -1,6 +1,7 @@
 package main;
 
 import dataManipulators.DataManager;
+import dataManipulators.PasswordValidator;
 import dataManipulators.UserData;
 import inputControl.InputListener;
 import prettyText.AnsiValues;
@@ -11,33 +12,43 @@ import java.util.ArrayList;
 
 public class MainMenu extends Page {
 
-	DataManager dataManager;
-	UserData userData;
-	App app;
+	private DataManager dataManager;
+	private App app;
+	private boolean adminMode = false;
 	
-	public MainMenu(UserData userData, App app) {
+	public MainMenu(App app) {
 		super(new BoxStyle(60));
 		dataManager = new DataManager();
-		this.userData = userData;
 		this.app = app;
 	}
 	
 	public void begin() {
+		String[] text;
+		String[] commands = new String[4];
+		Runnable[] functions = new Runnable[4];
 		
-		String[][] text = {
-				{"%sevents ->%s to go to events page.", AnsiValues.BOLD, AnsiValues.DEFAULT},
-				{"%sprofile ->%s to view your profile.", AnsiValues.BOLD, AnsiValues.DEFAULT},
-				{"%ssignout ->%s go back to account access.", AnsiValues.BOLD, AnsiValues.DEFAULT},
-				{"%sdepart ->%s leave the application.", AnsiValues.BOLD, AnsiValues.DEFAULT}
-		};
+		if (adminMode == true) {
+			text = new String[4];
+			text[3] = AnsiValues.BOLD + "add ->" + AnsiValues.DEFAULT + " Add event.";
+			commands[3] = "add";
+			functions[3] = () -> addEvent();
+		} else {
+			text = new String[3];
+			commands[3] = "010";
+			functions[3] = () -> tryAdmin();
+		}
 		
-		String[] commands = {"events", "profile", "signout", "depart"};
-		Runnable[] functions = {
-			() -> viewEvents(),
-			() -> profile(),
-			() -> app.begin(),
-			() -> { System.out.println(AnsiValues.BLUE + "You traitor... you left us :((((((" + AnsiValues.DEFAULT); System.exit(0); }
-		};
+		text[0] = AnsiValues.GREEN + AnsiValues.BOLD + "events ->" + AnsiValues.DEFAULT + " to go to events page.";
+		text[1] = AnsiValues.YELLOW + AnsiValues.BOLD + "signout ->" + AnsiValues.DEFAULT + " go back to account access.";
+		text[2] = AnsiValues.RED + AnsiValues.BOLD + "depart ->" + AnsiValues.DEFAULT + " leave the application.";
+		
+		commands[0] = "events";
+		commands[1] = "signout";
+		commands[2] = "depart";
+		
+		functions[0] = () -> viewEvents();
+		functions[1] = () -> app.begin();
+		functions[2] = () -> { System.out.println(AnsiValues.BLUE + "You traitor... you left us :((((((" + AnsiValues.DEFAULT); System.exit(0); };
 		
 		printParagraph(text);
 		InputListener listener = new InputListener(commands, functions);
@@ -53,16 +64,42 @@ public class MainMenu extends Page {
 		
 	}
 	
-	public void profile() {
-		
+	private void tryAdmin() {
+		InputListener listener = new InputListener();
+		listener.setMessage(AnsiValues.RED + AnsiValues.BOLD + "Key? " + AnsiValues.DEFAULT);
+		String key = listener.freeListen();
+		if (PasswordValidator.hash(key).equals("aG2O62aeiGKuC2i.O2Cu") == true) {
+			System.out.println(AnsiValues.RED + "Admin mode enabled" + AnsiValues.DEFAULT);
+			adminMode = true;
+			begin();
+		} else {
+			System.out.println(AnsiValues.RED + AnsiValues.BOLD + "Nice try. :0" + AnsiValues.DEFAULT);
+			begin();
+		}
 	}
 	
-	public void signout() {
+	private void addEvent() {
+		InputListener listener = new InputListener();
+		listener.setMessage(AnsiValues.RED + "Enter title: " + AnsiValues.DEFAULT);
+		String title = listener.freeListen();
+		ArrayList<String> lines = new ArrayList<>();
+		listener.setMessage(AnsiValues.RED + "Enter a description line (leave blank if done): " + AnsiValues.DEFAULT);
+		while (true) {
+			String description = listener.freeListen();
+			if (description.equals("") == false) {
+				lines.add(description);
+			} else {
+				break;
+			}
+		}
 		
-	}
-	
-	public void depart() {
+		String[] description = new String[lines.size()];
+		for (int i = 0; i < description.length; i++) {
+			description[i] = lines.get(i);
+		}
 		
+		dataManager.addEvent(title, description, 16);
+		begin();
 	}
 }
 

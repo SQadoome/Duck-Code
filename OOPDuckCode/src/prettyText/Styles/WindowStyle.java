@@ -19,15 +19,4 @@ public class WindowStyle extends Style{
 		
 	}
 	
-	public WindowStyle(TextMarginar marginar) {
-		super(marginar);
-	}
-	
-	public WindowStyle(TextMarginar marginar, int length) {
-		super(marginar, length);
-		startText = "-".repeat(length + 2);
-		bodyText = "";
-		endText = "-".repeat(length + 2);
-	}
-	
 }

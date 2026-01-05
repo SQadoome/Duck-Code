@@ -28,87 +28,30 @@ public class Page {
 	}
 	//--------
 	
-	public void printParagraph(String[] lines) {
-		if (style != null) {
-			
-			style.printStart();
-			for (int i = 0; i < lines.length; i++) {
-				style.printBody(lines[i], lines[i].length());
-			}
-			style.printEnd();
-			
-		} else {
-			for (int i = 0; i < lines.length; i++) {
-				System.out.printf(lines[i]);
-			}
-		}
-	}
-	
-	
 	public void printParagraph(String title, String[] lines) {
-		if (style != null) {
-			
-			style.printStart();
-			style.printTitle(title);
-			for (int i = 0; i < lines.length; i++) {
-				style.printBody(lines[i], lines[i].length());
-			}
-			style.printEnd();
-			
-		} else {
-			for (int i = 0; i < lines.length; i++) {
-				System.out.printf(lines[i]);
-			}
-		}
+		style.printStart();
+		style.printLine(AnsiValues.YELLOW + title + AnsiValues.DEFAULT);
+		style.printBody(lines);
+		style.printEnd();
 	}
 	
-	public void printParagraph(String[][] data) {
-		if (style != null) {
-			
-			style.printStart();
-			for (int i = 0; i < data.length; i++) {
-				style.printBody(data[i][0], data[i][0].length(), Arrays.copyOfRange(data[i], 1, data[i].length));
-			}
-			style.printEnd();
-			
-		} else {
-			for (int i = 0; i < data.length; i++) {
-				System.out.printf(data[i][0]);
-			}
-		}
-	}
-	
-	public void printParagraph(String title, String[][] data) {
-		if (style != null) {
-			
-			style.printStart();
-			style.printTitle(title);
-			for (int i = 0; i < data.length; i++) {
-				style.printBody(data[i][0], data[i][0].length(), Arrays.copyOfRange(data[i], 1, data[i].length - 1));
-			}
-			style.printEnd();
-			
-		} else {
-			for (int i = 0; i < data.length; i++) {
-				System.out.printf(data[i][0]);
-			}
-		}
+	public void printParagraph(String[] lines) {
+		style.printStart();
+		style.printBody(lines);
+		style.printEnd();
 	}
 	
 	public void printParagraphs(String[][] paragraphs) {
-		if (style != null) {
+		style.printStart();
+		
+		for (int i = 0; i < paragraphs.length; i++) {
 			
-			style.printStart();
-			
-			for (int index = 0; index < paragraphs.length; index++) {
-				style.printTitle(paragraphs[index][0]);
-				for (int line = 0; line < paragraphs[index].length; line++) {
-					style.printBody(paragraphs[index][line], paragraphs[index][line].length());
-				}
-				style.printBody("", 0);
-			}
-			style.printEnd();
+			style.printLine(AnsiValues.YELLOW + paragraphs[i][0] + AnsiValues.DEFAULT); // title
+			style.printBody(Arrays.copyOfRange(paragraphs[i], 1, paragraphs[i].length)); // body (end is not enclusive)
+			style.printLine("");
 		}
 		
+		style.printEnd();
 	}
+	
 }

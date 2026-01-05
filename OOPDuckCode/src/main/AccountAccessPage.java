@@ -67,6 +67,29 @@ public class AccountAccessPage extends Page {
 				begin();
 				return;
 			}
+			
+			if (input.length() > 12) {
+				System.out.println(AnsiValues.RED + "\nUser must not exceed 12 characters!" + AnsiValues.DEFAULT);
+				continue;
+			}
+			if (input.length() < 1) {
+				System.out.println(AnsiValues.RED + "\nUsername must ATLEAST contain 1 character!" + AnsiValues.DEFAULT);
+				continue;
+			}
+			boolean flag = false;
+			
+			for (int i = 0; i < input.length(); i++) {
+				if (Character.isLetter(input.charAt(i)) == false) {
+					System.out.println(AnsiValues.RED + "\nUsername must ONLY contain letters." + AnsiValues.DEFAULT);
+					flag = true;
+					break;
+				}
+			}
+			
+			if (flag == true) {
+				continue;
+			}
+			
 			if (dataManager.doesUserExist(input) == false) {
 				username = input;
 				while(true) {
@@ -122,7 +145,8 @@ public class AccountAccessPage extends Page {
 						System.out.println(AnsiValues.GREEN + "Successfully logged in.\nWelcome " + username + " to Duck-Code!" + AnsiValues.DEFAULT);
 						UserData userData = new UserData();
 						userData.setUser(registerationData.username, registerationData.passwordHash, registerationData.hashSalt);
-						app.startMainMenu(userData);
+						App.user = userData;
+						app.startMainMenu();
 						return;
 					} else {
 						System.out.println(AnsiValues.RED + "Password is incorrect!" + AnsiValues.DEFAULT);

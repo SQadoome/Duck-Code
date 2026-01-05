@@ -4,11 +4,13 @@ import dataManipulators.UserData;
 
 public class App {
 
+	public static UserData user;
+	 
 	AccountAccessPage accountAccess;
 	MainMenu mainMenu;
+	
 	public App() {
 		accountAccess = new AccountAccessPage();
-		
 	}
 	
 	public void begin() {
@@ -16,8 +18,8 @@ public class App {
 		accountAccess.begin();
 	}
 	
-	public void startMainMenu(UserData userData) {
-		mainMenu = new MainMenu(userData, this);
+	public void startMainMenu() {
+		mainMenu = new MainMenu(this);
 		mainMenu.begin();
 	}
 	

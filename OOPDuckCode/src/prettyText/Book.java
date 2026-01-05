@@ -3,7 +3,7 @@ package prettyText;
 
 public class Book {
 
-	Page[] pages;
+	private Page[] pages;
 	public int activePage;
 	
 	// constructors
@@ -20,6 +20,10 @@ public class Book {
 	public void setPages(Page[] pages) {
 		this.pages = pages;
 		activePage = 0;
+	}
+	
+	public Page[] getPages() {
+		return pages;
 	}
 	
 	// ------
@@ -42,16 +46,6 @@ public class Book {
 	}
 	
 	public void printActivePage(String title, String[] lines) {
-		pages[activePage].printParagraph(title, lines);
-		printPageList();
-	}
-	
-	public void printActivePage(String[][] lines) {
-		pages[activePage].printParagraph(lines);
-		printPageList();
-	}
-	
-	public void printActivePage(String title, String[][] lines) {
 		pages[activePage].printParagraph(title, lines);
 		printPageList();
 	}

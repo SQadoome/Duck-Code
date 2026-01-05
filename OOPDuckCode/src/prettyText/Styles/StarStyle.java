@@ -1,7 +1,5 @@
 package prettyText.Styles;
 
-import prettyText.TextMarginar;
-
 public class StarStyle extends Style{
 	
 	public StarStyle() {
@@ -17,17 +15,6 @@ public class StarStyle extends Style{
 		bodyText = "*";
 		endText = "*-*".repeat((length + 2)/3);
 		
-	}
-	
-	public StarStyle(TextMarginar marginar) {
-		super(marginar);
-	}
-	
-	public StarStyle(TextMarginar marginar, int length) {
-		super(marginar, length);
-		startText = "*-*".repeat((length + 2)/3);
-		bodyText = "*";
-		endText = "*-*".repeat((length + 2)/3);
 	}
 	
 }

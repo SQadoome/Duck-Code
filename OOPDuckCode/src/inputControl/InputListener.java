@@ -94,14 +94,18 @@ public class InputListener {
 		activeListeners += 1;
 		
 		while (true) {
-			System.out.print(message);
-			String input = reader.nextLine().toLowerCase();
+			if (message == null) {
+				System.out.print("");
+			} else {
+				System.out.print(message);
+			}
+			String input = reader.nextLine();
 			System.out.println();
 		
-			if (commands.containsKey(input) == true) {
+			if (commands.containsKey(input.toLowerCase()) == true) {
 				activeListeners -= 1;
 				if (functions != null) {
-					functions[commands.get(input)].run();
+					functions[commands.get(input.toLowerCase())].run();
 				}
 				return input;
 			} else {

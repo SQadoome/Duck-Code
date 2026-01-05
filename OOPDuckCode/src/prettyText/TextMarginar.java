@@ -38,27 +38,22 @@ public class TextMarginar {
 		this.margin = margin;
 	}
 	
-	public MarginData retrieveMargin(int length) {
+	public MarginData retrieveMargin(String text, int maxLength) {
 		MarginData data = new MarginData(); // space and limit/boundary
-		data.limit = length;
 		
 		switch(margin) {
 			case beginning:
 				data.emptySpace = marginValue;
+				data.limit = maxLength - (data.emptySpace + text.length());
 				break;
 			case centered:
-				data.emptySpace = (length)/10 + marginValue;
+				data.emptySpace = (maxLength)/10 + marginValue;
 				data.limit = data.emptySpace; // before limiting emptySpace to atleast 1
 				if (data.emptySpace == 0) {
 					data.emptySpace = 1;
 				}
 				break;
 			case end:
-				if (length - marginValue > 0 && length - marginValue < length) {
-					data.emptySpace = length - marginValue;
-				} else {
-					data.emptySpace = length-2; // 1 for "-" other for the char
-				}
 				break;
 			default:
 				break;	

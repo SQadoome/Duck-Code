@@ -16,10 +16,13 @@ public class PasswordValidator {
 		*/
 		
 		for (int i = 0; i < text.length(); i++) {
-			int ascii = text.charAt(i) - '0';
+			int ascii = text.charAt(i) - '0' + 255;
+			/*
+			 * + 255 because low values like 0, 1, 2... will not result in a big change
+			 */
 			
 			for (int charIndex = 0; charIndex < hashChars.length; charIndex++) {
-				int innerAscii = hashChars[charIndex] - '0';
+				int innerAscii = hashChars[charIndex] - '0' + 255;
 				int hashedChar = ((ascii*innerAscii*(charIndex + 1)) % (availableChars.length()));
 				if (hashedChar < 0) {
 					hashedChar *= -1;

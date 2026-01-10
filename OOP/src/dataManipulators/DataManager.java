@@ -1,0 +1,231 @@
+package dataManipulators;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
+public class DataManager {
+	
+	// static to ensure one copy only
+	private final static DataReader READER = new DataReader();
+	private final static DataSaver SAVER = new DataSaver();
+	//
+	
+	public DataManager() {
+		try {
+			validateData();
+		} catch (IOException e) {
+			System.err.println("Error validating data.");
+			e.printStackTrace();
+		}
+	}
+	
+	private void validateData() throws IOException {
+		File registerationFolder = new File("Data");
+		File[] dataFiles = {new File("Data/registered_users"), new File("Data/event_data")};
+		
+		if (registerationFolder.exists() == true) {
+			// if the "folder" is a "file" then delete it and create a new folder
+			if (registerationFolder.isDirectory() == false) {
+				registerationFolder.delete();
+				registerationFolder.mkdir();
+			}
+		} else {
+			registerationFolder.mkdir();
+		}
+		
+		for (File file : dataFiles) {
+			
+			if ((file.exists() == true && file.isFile() == false)) {
+				file.delete();
+				file.createNewFile();
+				if (file.getName().equals(dataFiles[1].getName()) == true) {
+					generateDefaultEvents();
+				}
+				
+			} else if (file.exists() == false) {
+				file.createNewFile();
+				if (file.getName().equals(dataFiles[1].getName()) == true) {
+					generateDefaultEvents();
+				}
+			}
+			
+		}
+		
+	}
+	
+	// ---------
+	
+	private void generateDefaultEvents() {
+		addEvent("Duck-Code major", new String[] {"the offical tournament"}, 16);
+		addEvent("PPL", new String[] {"Programming pro league"}, 16);
+		addEvent("Standoff 2 major", new String[] {"When will VP win?"}, 16);
+		
+		for (int i = 0; i < 8; i++) {
+			addEvent("Test" + i, new String[] {"This is a test"}, 16);
+		}
+		
+	}
+	
+	public UserData getUserRegisterationData(String username) {
+		UserData reigsterationData = new UserData();
+		Data data = READER.readData(username, "Data/registered_users", ((char) 126) + "");
+		
+		if (data != null) {
+			reigsterationData.setUser(data.getFormated()[0], data.getFormated()[1], data.getFormated()[2]);
+		}
+		
+		return reigsterationData;
+	}
+	
+	public boolean doesUserExist(String username) {
+		UserData data = getUserRegisterationData(username);
+		
+		if (data.isEmpty() == true) {
+			return false;
+		} else {
+			return true;
+		}
+		
+	}
+	
+	public void registerUser(String username, String passwordHash, String salt) {
+		char splitChar = (char) 126;
+		SAVER.appendData(username + splitChar + passwordHash + splitChar + salt + "\n", "Data/registered_users");
+		
+	}
+	
+	public EventData getEventData(String eventName) {
+		EventData data = new EventData();
+		Data retrievedData = READER.readData(eventName, "Data/event_data", ":");
+		data.setName(retrievedData.getFormated()[0]);
+		data.setDescription(retrievedData.getFormated()[1]);
+		
+		ArrayList<String> participants = new ArrayList<>();
+		String[] raw = retrievedData.getFormated()[2].split(",");
+		
+		for (int i = 0; i < 16; i++) {
+			String next = raw[i].strip();
+			if (next.isBlank() == false) {
+				participants.add(next);
+			}
+		}
+		
+		String[] participantsArr = new String[participants.size()];
+		
+		for (int i = 0; i < participants.size(); i++) {
+			participantsArr[i] = participants.get(i);
+		}
+		
+		
+		data.setParticipants(participantsArr);
+		return data;
+	}
+	
+	public EventData[] getEvents() {
+		String[] rawData = READER.getLines("Data/event_data");
+		
+		EventData[] data = new EventData[rawData.length];
+		for (int i = 0; i < rawData.length; i++) {
+			String[] temp = rawData[i].split(":");
+			EventData next = new EventData();
+			next.setName(temp[0]);
+			next.setDescription(temp[1]);
+			// for the sake of not killing the memory, if you want to get participants use getEventData instead.
+			
+			data[i] = next;
+		}
+		
+		return data;
+	}
+	
+	public boolean addParticipant(EventData event, String username) {
+		if (isParticipating(event, username) == true) {
+			System.out.println("Already registered.");
+			return false;
+		}
+		
+		Data data = READER.readData(event.getName(), "Data/event_data", ":");
+		int targetPos = data.getAtByte();
+		
+		targetPos += event.getName().length() + 1 + event.getDescription().length() + 1;
+		int participantCount = getEventData(event.getName()).getParticipants().length;
+		
+		
+		if (participantCount >= 16) {
+			System.err.println("Full of participants.");
+			return false;
+		}
+		
+		String[] slots = data.getFormated()[2].split(",");
+		
+		for (int i = 0; i < slots.length; i++) {
+			if (slots[i].isBlank() == true) {
+				break;
+			} else {
+				targetPos += 12 + 1;
+			}
+			
+		}
+		
+		SAVER.overriteData(username, "Data/event_data", targetPos);
+		System.out.println("Successfully registered for event.");
+		return true;
+	}
+	
+	public void addEvent(String title, String[] description, int slots) {
+		
+		String line = title + ":";
+		
+		for (int i = 0; i < description.length - 1; i++) {
+			line += description[i] + ";";
+		}
+		line += description[description.length - 1] + ":";
+		
+		for (int i = 0; i < slots; i++) {
+			line += " ".repeat(12) + ",";
+		}
+		line += "\n";
+		SAVER.appendData(line, "Data/event_data");
+	}
+	
+	public void removeParticiapnt(EventData event, String username) {
+		if (isParticipating(event, username) == false) {
+			System.out.println("You are already not participating.");
+			return;
+		}
+		
+		Data data = READER.readData(event.getName(), "Data/event_data", ":");
+		int targetPos = data.getAtByte();
+		
+		targetPos += event.getName().length() + 1 + event.getDescription().length() + 1;
+		
+		String[] slots = data.getFormated()[2].split(",");
+		
+		for (int i = 0; i < slots.length; i++) {
+			if (slots[i].strip().equals(username) == true) {
+				break;
+			} else {
+				targetPos += 12 + 1;
+			}
+			
+		}
+		
+		SAVER.overriteData(" ".repeat(12), "Data/event_data", targetPos);
+		System.out.println("Sucessfuly unregistered for the event.");
+	}
+	
+	public boolean isParticipating(EventData event, String username) {
+		
+		String[] participants = getEventData(event.getName()).getParticipants();
+		
+		for (int i = 0; i < participants.length; i++) {
+			if (username.equals(participants[i].strip()) == true) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+}
+
